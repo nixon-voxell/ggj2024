@@ -6,6 +6,7 @@ mod board;
 mod emoji;
 mod emoji_ui;
 mod game;
+mod menu_ui;
 mod mouse;
 
 fn main() {
@@ -24,6 +25,7 @@ fn main() {
         // .add_systems(Startup, (setup, board::setup))
         // Systems
         .add_systems(Startup, (setup, emoji_ui::setup))
+        .add_systems(Startup, (setup, emoji_ui::setup, menu_ui::menu_button))
         .add_systems(Startup, emoji::load_emoji_data)
         .add_systems(
             Update,
