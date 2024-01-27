@@ -24,7 +24,6 @@ fn main() {
         .add_event::<mouse::Clicked>()
         // .add_systems(Startup, (setup, board::setup))
         // Systems
-        .add_systems(Startup, (setup, emoji_ui::setup))
         .add_systems(Startup, (setup, emoji_ui::setup, menu_ui::menu_button))
         .add_systems(Startup, emoji::load_emoji_data)
         .add_systems(
