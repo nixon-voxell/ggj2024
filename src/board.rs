@@ -1,6 +1,7 @@
 use bevy::math::{DVec2, DVec4};
 use bevy::prelude::*;
 use bevy_motiongfx::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 #[derive(Component)]
 pub struct RedRook;
@@ -117,7 +118,12 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
             };
 
             let entity: Entity = commands
-                .spawn((rect.clone(), Tile, BoardPosition { x, y }))
+                .spawn((
+                    rect.clone(),
+                    Tile,
+                    BoardPosition { x, y },
+                    Collider::cuboid(HALF_TILE_SIZE, HALF_TILE_SIZE),
+                ))
                 .id();
 
             let mut rect_motion: VelloRectBundleMotion = VelloRectBundleMotion::new(entity, rect);
@@ -162,6 +168,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
                 BlueRook,
                 BoardPosition { x, y: 0 },
                 RookAlive,
+                Collider::ball(ROOK_RADIUS as f32),
             ))
             .id();
 
@@ -212,6 +219,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
                     y: ROW_COUNT - 1,
                 },
                 RookAlive,
+                Collider::ball(ROOK_RADIUS as f32),
             ))
             .id();
 
