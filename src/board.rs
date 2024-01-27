@@ -20,6 +20,9 @@ pub struct BoardPosition {
 pub struct RookAlive;
 
 #[derive(Component)]
+pub struct Rook;
+
+#[derive(Component)]
 pub struct Tile;
 
 #[derive(Clone, Copy, Default)]
@@ -100,7 +103,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
             let translation: Vec3 = Vec3::new(
                 TILE_SIZE * (x as f32) + ROW_START,
                 TILE_SIZE * (y as f32) + ROW_START,
-                0.0,
+                -1.0,
             );
 
             let rect: VelloRectBundle = VelloRectBundle {
@@ -165,6 +168,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
         let circle_id: Entity = commands
             .spawn((
                 circle.clone(),
+                Rook,
                 BlueRook,
                 BoardPosition { x, y: 0 },
                 RookAlive,
@@ -213,6 +217,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
         let circle_id: Entity = commands
             .spawn((
                 circle.clone(),
+                Rook,
                 RedRook,
                 BoardPosition {
                     x,
@@ -237,7 +242,8 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
         ]));
     }
 
-    let sequence: Sequence = chain(&[flow(0.04, &tile_sequences), flow(0.04, &rook_sequences)]);
+    let sequence: Sequence = chain(&[flow(0.04, &tile_sequences), flow(0.04, &rook_sequences)])
+        .with_ease(ease::cubic::ease_in_out);
     let sequence_id: Entity = commands.spawn(sequence).id();
     commands.spawn((Timeline::new(sequence_id), BoardSetupTimeline));
 

@@ -14,7 +14,18 @@ fn main() {
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, (setup, board::setup))
-        .add_systems(Update, board::setup_animation_update)
+        .add_systems(
+            Update,
+            (
+                board::setup_animation_update,
+                (
+                    mouse::mouse_hover,
+                    mouse::hover_animation,
+                    mouse::clear_hover,
+                )
+                    .chain(),
+            ),
+        )
         .run();
 }
 

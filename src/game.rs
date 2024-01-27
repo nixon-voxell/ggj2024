@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 
-// pub enum GameState {
-//     BlueRound,
-//     RedRound,
-// }
+pub enum GameState {
+    Blue,
+    Red,
+    Audio,
+    Placement,
+}
