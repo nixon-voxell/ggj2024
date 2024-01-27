@@ -8,5 +8,7 @@ edition = "2021"
 [dependencies]
 bevy = "0.12"
 bevy_motiongfx = { git = "https://github.com/nixon-voxell/bevy_motiongfx.git", rev = "9e1c6fb9b5e3ef9e32af48b641235a127aab4256" }
+motiongfx_vello = { git = "https://github.com/nixon-voxell/bevy_motiongfx.git", rev = "9e1c6fb9b5e3ef9e32af48b641235a127aab4256" }
+motiongfx_typst = { git = "https://github.com/nixon-voxell/bevy_motiongfx.git", rev = "9e1c6fb9b5e3ef9e32af48b641235a127aab4256" }
 bevy_rapier2d = "0.23"
 bevy-vello = {git = "https://github.com/vectorgameexperts/bevy-vello.git"}

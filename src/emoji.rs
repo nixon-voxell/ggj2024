@@ -16,15 +16,13 @@ pub fn load_emoji_data(asset_server: Res<AssetServer>, mut emoji_map: ResMut<Emo
     let audio_folder = "emoji-sound-ogg/";
     let vector_folder = "emoji/";
 
-    let Ok(audio_entries) = fs::read_dir(audio_folder) else {
+    let Ok(audio_entries) = fs::read_dir("./assets/".to_string() + audio_folder) else {
         return;
     };
 
-    let Ok(mut vector_entires) = fs::read_dir(vector_folder) else {
+    let Ok(mut vector_entires) = fs::read_dir("./assets/".to_string() + vector_folder) else {
         return;
     };
-
-    // let entry_count: usize = audio_entires.count();
 
     for audio_entry in audio_entries {
         let audio_entry: fs::DirEntry = audio_entry.unwrap();
@@ -40,6 +38,8 @@ pub fn load_emoji_data(asset_server: Res<AssetServer>, mut emoji_map: ResMut<Emo
         let vector_handle: Handle<bevy_vello::VelloVector> = asset_server.load(vector_path);
 
         let name: String = audio_entry.file_name().into_string().unwrap();
+
+        println!("{}", name);
         emoji_map.map.insert(
             name.split('.').next().unwrap().to_owned(),
             EmojiData {

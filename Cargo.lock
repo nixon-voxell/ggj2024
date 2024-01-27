@@ -2206,6 +2206,8 @@ dependencies = [
  "bevy-vello",
  "bevy_motiongfx",
  "bevy_rapier2d",
+ "motiongfx_typst",
+ "motiongfx_vello",
 ]
 
 [[package]]

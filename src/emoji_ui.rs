@@ -5,6 +5,8 @@ use bevy::{
 use bevy_motiongfx::prelude::*;
 use bevy_rapier2d::prelude::*;
 
+use crate::{emoji::EmojiMap, mouse, SetupTimeline};
+
 #[derive(Component)]
 pub struct TileSetupTimeline;
 
@@ -19,8 +21,9 @@ pub struct PlayerSelection;
 #[derive(Component)]
 pub struct Menu;
 
-const SPACING_SCALE: f32 = 1.5;
+const SPACING_SCALE: f32 = 3.0;
 const STARTING_SCALE: Vec3 = Vec3::splat(0.5);
+const LOTTIE_SCALE: Vec3 = Vec3::splat(0.05);
 
 pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>>) {
     // Number of rows on the board
@@ -67,7 +70,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
                 rect.clone(),
                 EmojiTile { index: x },
                 Collider::cuboid(HALF_TILE_SIZE, HALF_TILE_SIZE),
-                crate::mouse::Clickable,
+                mouse::Clickable,
             ))
             .id();
 
@@ -83,15 +86,19 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
         ));
     }
 
-    let sequence: Sequence = flow(0.04, &tile_sequences).with_ease(ease::cubic::ease_in_out);
+    let sequence: Sequence = flow(0.1, &tile_sequences).with_ease(ease::cubic::ease_in_out);
     let sequence_id: Entity = commands.spawn(sequence).id();
 
     let mut timeline: Timeline = Timeline::new(sequence_id);
     timeline.time_scale = -1.0;
-    commands.spawn((timeline, TileSetupTimeline));
+    commands.spawn((timeline, SetupTimeline, TileSetupTimeline));
 }
 
-pub fn setup_menu(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>>) {
+pub fn setup_menu(
+    mut commands: Commands,
+    mut fragments: ResMut<Assets<VelloFragment>>,
+    mut emoji_map: ResMut<EmojiMap>,
+) {
     // Number of rows on the board
     const ROW_COUNT: usize = 5;
     // The size of a single tile
@@ -108,6 +115,8 @@ pub fn setup_menu(mut commands: Commands, mut fragments: ResMut<Assets<VelloFrag
     let stroke_color: Color = *palette.get_or_default(&ColorKey::Base8);
     let fill_color: Color = *palette.get_or_default(&ColorKey::Base2);
     let mut tile_sequences: Vec<Sequence> = Vec::with_capacity(ROW_COUNT);
+
+    let emoji_keys: Vec<&String> = emoji_map.map.keys().collect();
 
     for x in 0..ROW_COUNT {
         for y in 0..ROW_COUNT {
@@ -129,13 +138,22 @@ pub fn setup_menu(mut commands: Commands, mut fragments: ResMut<Assets<VelloFrag
                 STARTING_SCALE,
             );
 
+            let index: usize = x + y * ROW_COUNT;
             let entity: Entity = commands
                 .spawn((
                     rect.clone(),
-                    EmojiTile { index: x },
+                    EmojiTile { index },
                     Collider::cuboid(HALF_TILE_SIZE, HALF_TILE_SIZE),
-                    crate::mouse::Clickable,
+                    mouse::Clickable,
                 ))
+                .with_children(|parent| {
+                    parent.spawn(bevy_vello::VelloVectorBundle {
+                        vector: emoji_map.map[emoji_keys[index]].vector_handle.clone(),
+                        transform: Transform::from_xyz(0.0, -TILE_SIZE * 0.5, 1.0)
+                            .with_scale(LOTTIE_SCALE),
+                        ..default()
+                    });
+                })
                 .id();
 
             let mut rect_motion: VelloRectBundleMotion = VelloRectBundleMotion::new(entity, rect);
@@ -151,12 +169,12 @@ pub fn setup_menu(mut commands: Commands, mut fragments: ResMut<Assets<VelloFrag
         }
     }
 
-    let sequence: Sequence = flow(0.04, &tile_sequences).with_ease(ease::cubic::ease_in_out);
+    let sequence: Sequence = flow(0.1, &tile_sequences).with_ease(ease::cubic::ease_in_out);
     let sequence_id: Entity = commands.spawn(sequence).id();
 
     let mut timeline: Timeline = Timeline::new(sequence_id);
     timeline.time_scale = -1.0;
-    commands.spawn((timeline, TileSetupTimeline));
+    commands.spawn((timeline, SetupTimeline, TileSetupTimeline));
 }
 
 fn create_tile(
@@ -193,30 +211,9 @@ fn create_tile_animation(
 ) -> Sequence {
     let mut act: ActionBuilder = ActionBuilder::new(commands);
     all(&[
-        act.play(rect_motion.transform.translate_to(translation), 0.6),
-        act.play(rect_motion.transform.scale_to(Vec3::splat(1.0)), 0.6),
-        act.play(rect_motion.fill.brush_to(fill), 0.6),
-        act.play(rect_motion.stroke.brush_to(stroke), 0.6),
+        act.play(rect_motion.transform.translate_to(translation), 1.0),
+        act.play(rect_motion.transform.scale_to(Vec3::splat(1.0)), 1.0),
+        act.play(rect_motion.fill.brush_to(fill), 1.0),
+        act.play(rect_motion.stroke.brush_to(stroke), 1.0),
     ])
-}
-
-pub fn setup_animation_update(
-    mut q_timelines: Query<&mut Timeline, With<TileSetupTimeline>>,
-    q_sequences: Query<&Sequence>,
-    time: Res<Time>,
-) {
-    for mut timeline in q_timelines.iter_mut() {
-        let Ok(sequence) = q_sequences.get(timeline.sequence_id().unwrap()) else {
-            return;
-        };
-
-        // stops updating when timeline reaches the end
-        if (timeline.time_scale > 0.0 && timeline.target_time >= sequence.duration())
-            || (timeline.time_scale < 0.0 && timeline.target_time <= 0.0)
-        {
-            continue;
-        }
-
-        timeline.target_time += timeline.time_scale * time.delta_seconds();
-    }
 }

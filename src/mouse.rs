@@ -51,8 +51,8 @@ pub fn mouse_hover(
             prev_clicked.entity = Some(entity);
             println!("Clicking entity {:?}", entity);
         }
-        // true
-        false
+        true
+        // false
     });
 }
 
@@ -61,12 +61,6 @@ pub fn hover_animation(
     mut ev_clicked: EventReader<Clicked>,
 ) {
     for clicked in ev_clicked.read() {
-        let Ok(mut transform) = q_clickables.get_mut(clicked.entity) else {
-            return;
-        };
-
-        transform.scale = Vec3::splat(1.2);
-
         if let Some(prev_entity) = clicked.prev_entity {
             let Ok(mut transform) = q_clickables.get_mut(prev_entity) else {
                 return;
@@ -74,5 +68,11 @@ pub fn hover_animation(
 
             transform.scale = Vec3::splat(1.0);
         }
+
+        let Ok(mut transform) = q_clickables.get_mut(clicked.entity) else {
+            return;
+        };
+
+        transform.scale = Vec3::splat(1.2);
     }
 }
