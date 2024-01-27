@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.12"
-bevy_motiongfx = { git = "https://github.com/nixon-voxell/bevy_motiongfx.git" }
+bevy_motiongfx = { git = "https://github.com/nixon-voxell/bevy_motiongfx.git", rev = "626dee8dc396546af9c963986801d852338dc1ff" }

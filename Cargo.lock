@@ -751,7 +751,7 @@ dependencies = [
 [[package]]
 name = "bevy_motiongfx"
 version = "0.1.0"
-source = "git+https://github.com/nixon-voxell/bevy_motiongfx.git#26ff40c87faf6b1b733a213badb08a3b5140b5ac"
+source = "git+https://github.com/nixon-voxell/bevy_motiongfx.git?rev=626dee8dc396546af9c963986801d852338dc1ff#626dee8dc396546af9c963986801d852338dc1ff"
 dependencies = [
  "motiongfx_bevy",
  "motiongfx_core",
@@ -3063,7 +3063,7 @@ dependencies = [
 [[package]]
 name = "motiongfx_bevy"
 version = "0.1.0"
-source = "git+https://github.com/nixon-voxell/bevy_motiongfx.git#26ff40c87faf6b1b733a213badb08a3b5140b5ac"
+source = "git+https://github.com/nixon-voxell/bevy_motiongfx.git?rev=626dee8dc396546af9c963986801d852338dc1ff#626dee8dc396546af9c963986801d852338dc1ff"
 dependencies = [
  "bevy_app",
  "bevy_asset",
@@ -3078,7 +3078,7 @@ dependencies = [
 [[package]]
 name = "motiongfx_core"
 version = "0.1.0"
-source = "git+https://github.com/nixon-voxell/bevy_motiongfx.git#26ff40c87faf6b1b733a213badb08a3b5140b5ac"
+source = "git+https://github.com/nixon-voxell/bevy_motiongfx.git?rev=626dee8dc396546af9c963986801d852338dc1ff#626dee8dc396546af9c963986801d852338dc1ff"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -3093,7 +3093,7 @@ dependencies = [
 [[package]]
 name = "motiongfx_typst"
 version = "0.1.0"
-source = "git+https://github.com/nixon-voxell/bevy_motiongfx.git#26ff40c87faf6b1b733a213badb08a3b5140b5ac"
+source = "git+https://github.com/nixon-voxell/bevy_motiongfx.git?rev=626dee8dc396546af9c963986801d852338dc1ff#626dee8dc396546af9c963986801d852338dc1ff"
 dependencies = [
  "bevy_app",
  "bevy_asset",
@@ -3120,7 +3120,7 @@ dependencies = [
 [[package]]
 name = "motiongfx_vello"
 version = "0.1.0"
-source = "git+https://github.com/nixon-voxell/bevy_motiongfx.git#26ff40c87faf6b1b733a213badb08a3b5140b5ac"
+source = "git+https://github.com/nixon-voxell/bevy_motiongfx.git?rev=626dee8dc396546af9c963986801d852338dc1ff#626dee8dc396546af9c963986801d852338dc1ff"
 dependencies = [
  "bevy_app",
  "bevy_asset",
