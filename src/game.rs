@@ -26,13 +26,13 @@ pub fn game_manager(
         return;
     }
 
-    let Ok(mut emoji_ui_setup) = q_emoji_ui_setup.get_single_mut() else {
-        return;
-    };
-
     match game_state.target_state {
         GameState::Start => {}
-        GameState::InGame => emoji_ui_setup.time_scale = 1.0,
+        GameState::InGame => {
+            for mut emoji_ui_setup in q_emoji_ui_setup.iter_mut() {
+                emoji_ui_setup.time_scale = 1.0;
+            }
+        }
         GameState::End => {}
     }
 

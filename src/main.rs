@@ -20,12 +20,17 @@ fn main() {
         // Resources
         .insert_resource(mouse::PreviousClicked::default())
         .insert_resource(emoji::EmojiMap::default())
-        .insert_resource(game::GameStateRes::default())
+        // .insert_resource(game::GameStateRes::default())
+        .insert_resource(game::GameStateRes {
+            curr_state: game::GameState::Start,
+            target_state: game::GameState::InGame,
+        })
         .add_event::<mouse::Clicked>()
         // .add_systems(Startup, (setup, board::setup))
         // Systems
-        .add_systems(Startup, (setup, emoji_ui::setup))
-        .add_systems(Startup, (setup, emoji_ui::setup, menu_ui::menu_button))
+        .add_systems(Startup, setup)
+        .add_systems(Startup, menu_ui::menu_button)
+        .add_systems(Startup, (emoji_ui::setup, emoji_ui::setup_menu))
         .add_systems(Startup, emoji::load_emoji_data)
         .add_systems(
             Update,
@@ -34,6 +39,7 @@ fn main() {
                 emoji_ui::setup_animation_update,
                 mouse::mouse_hover,
                 mouse::hover_animation,
+                game::game_manager,
             ),
         )
         .run();
