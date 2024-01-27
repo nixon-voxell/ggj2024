@@ -3,6 +3,7 @@ use bevy_motiongfx::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 mod board;
+mod emoji_ui;
 mod game;
 mod mouse;
 
@@ -13,17 +14,15 @@ fn main() {
         .add_plugins((MotionGfx, MotionGfxBevy, MotionGfxVello))
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         .add_plugins(RapierDebugRenderPlugin::default())
-        .add_systems(Startup, (setup, board::setup))
+        // .add_systems(Startup, (setup, board::setup))
+        .add_systems(Startup, (setup, emoji_ui::setup))
         .add_systems(
             Update,
             (
-                board::setup_animation_update,
-                (
-                    mouse::mouse_hover,
-                    mouse::hover_animation,
-                    mouse::clear_hover,
-                )
-                    .chain(),
+                // board::setup_animation_update,
+                emoji_ui::setup_animation_update,
+                (mouse::clear_hover, mouse::mouse_hover).chain(),
+                mouse::hover_animation,
             ),
         )
         .run();

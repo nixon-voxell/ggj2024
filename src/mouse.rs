@@ -1,15 +1,28 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::*;
 
+// #[derive(Component)]
+// pub struct Hovered;
+
 #[derive(Component)]
-pub struct Hovered;
+pub struct Clicked;
+
+#[derive(Component)]
+pub struct Clickable;
 
 pub fn mouse_hover(
     mut commands: Commands,
     q_windows: Query<&Window, With<PrimaryWindow>>,
-    rapier_context: Res<RapierContext>,
     q_camera: Query<(&Camera, &GlobalTransform)>,
+    q_clickables: Query<With<Clickable>>,
+    input_mouse: Res<Input<MouseButton>>,
+    rapier_context: Res<RapierContext>,
 ) {
+    // Add Clicked component to hovered entity on clicked
+    if input_mouse.just_pressed(MouseButton::Left) == false {
+        return;
+    }
+
     let Some(mut cursor_position) = q_windows.single().cursor_position() else {
         return;
     };
@@ -23,28 +36,39 @@ pub fn mouse_hover(
         .unwrap();
 
     rapier_context.intersections_with_point(cursor_position, QueryFilter::default(), |entity| {
-        // Callback called on each collider with a shape containing the point.
-        println!("The entity {:?} contains the point.", entity);
-        // Return `false` instead if we want to stop searching for other colliders containing this point.
-        true
+        if q_clickables.contains(entity) {
+            commands.entity(entity).insert(Clicked);
+            println!("Clicking entity {:?}", entity);
+        }
+        // true
+        false
     });
 }
 
-pub fn clear_hover(mut commands: Commands, q_hovers: Query<Entity, With<Hovered>>) {
+pub fn clear_hover(
+    mut commands: Commands,
+    q_hovers: Query<Entity, With<Clicked>>,
+    input_mouse: Res<Input<MouseButton>>,
+) {
+    // Remove Clicked component on clicked
+    if input_mouse.just_pressed(MouseButton::Left) == false {
+        return;
+    }
+
     for entity in q_hovers.iter() {
-        commands.entity(entity).remove::<Hovered>();
+        commands.entity(entity).remove::<Clicked>();
     }
 }
 
 pub fn hover_animation(
-    mut q_hovers: Query<&mut Transform, With<Hovered>>,
-    // mut q_non_hovers: Query<&mut Transform, (Without<Hovered>, With<Hoverable>)>,
+    mut q_clicks: Query<&mut Transform, With<Clicked>>,
+    mut q_not_clicks: Query<&mut Transform, (Without<Clicked>, With<Clickable>)>,
 ) {
-    for mut transform in q_hovers.iter_mut() {
+    for mut transform in q_clicks.iter_mut() {
         transform.scale = Vec3::splat(1.1);
     }
 
-    // for mut transform in q_non_hovers.iter_mut() {
-    //     transform.scale = Vec3::splat(1.0);
-    // }
+    for mut transform in q_not_clicks.iter_mut() {
+        transform.scale = Vec3::splat(1.0);
+    }
 }
