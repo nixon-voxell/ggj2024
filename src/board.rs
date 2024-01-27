@@ -1,6 +1,29 @@
 use bevy::math::{DVec2, DVec4};
 use bevy::prelude::*;
 use bevy_motiongfx::prelude::*;
+use bevy_rapier2d::prelude::*;
+
+#[derive(Component)]
+pub struct RedRook;
+
+#[derive(Component)]
+pub struct BlueRook;
+
+/// Position in the board
+#[derive(Component)]
+pub struct BoardPosition {
+    pub x: usize,
+    pub y: usize,
+}
+
+#[derive(Component)]
+pub struct RookAlive;
+
+#[derive(Component)]
+pub struct Rook;
+
+#[derive(Component)]
+pub struct Tile;
 
 #[derive(Clone, Copy, Default)]
 pub enum TileState {
@@ -80,7 +103,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
             let translation: Vec3 = Vec3::new(
                 TILE_SIZE * (x as f32) + ROW_START,
                 TILE_SIZE * (y as f32) + ROW_START,
-                0.0,
+                -1.0,
             );
 
             let rect: VelloRectBundle = VelloRectBundle {
@@ -97,7 +120,14 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
                 },
             };
 
-            let entity: Entity = commands.spawn(rect.clone()).id();
+            let entity: Entity = commands
+                .spawn((
+                    rect.clone(),
+                    Tile,
+                    BoardPosition { x, y },
+                    Collider::cuboid(HALF_TILE_SIZE, HALF_TILE_SIZE),
+                ))
+                .id();
 
             let mut rect_motion: VelloRectBundleMotion = VelloRectBundleMotion::new(entity, rect);
 
@@ -115,7 +145,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
     // Initalize board resource
     let mut board: Board = Board::new(ROW_COUNT, TILE_SIZE);
 
-    // First row rooks
+    // First row rooks (blue)
     let fill_color: Color = *palette.get_or_default(&ColorKey::Blue);
     let stroke_color: Color = fill_color * 1.5;
 
@@ -135,7 +165,16 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
             },
         };
 
-        let circle_id: Entity = commands.spawn(circle.clone()).id();
+        let circle_id: Entity = commands
+            .spawn((
+                circle.clone(),
+                Rook,
+                BlueRook,
+                BoardPosition { x, y: 0 },
+                RookAlive,
+                Collider::ball(ROOK_RADIUS as f32),
+            ))
+            .id();
 
         // Add rook to board
         board.tiles[x] = TileState::Blue(Some(circle_id));
@@ -151,7 +190,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
         ]));
     }
 
-    // Last row rooks
+    // Last row rooks (red)
     let fill_color: Color = *palette.get_or_default(&ColorKey::Red);
     let stroke_color: Color = fill_color * 1.5;
 
@@ -175,7 +214,19 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
             },
         };
 
-        let circle_id: Entity = commands.spawn(circle.clone()).id();
+        let circle_id: Entity = commands
+            .spawn((
+                circle.clone(),
+                Rook,
+                RedRook,
+                BoardPosition {
+                    x,
+                    y: ROW_COUNT - 1,
+                },
+                RookAlive,
+                Collider::ball(ROOK_RADIUS as f32),
+            ))
+            .id();
 
         // Add rook to board
         board.tiles[TILE_COUNT - ROW_COUNT + x] = TileState::Red(Some(circle_id));
@@ -191,14 +242,13 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
         ]));
     }
 
-    let sequence: Sequence = chain(&[flow(0.04, &tile_sequences), flow(0.04, &rook_sequences)]);
+    let sequence: Sequence = chain(&[flow(0.04, &tile_sequences), flow(0.04, &rook_sequences)])
+        .with_ease(ease::cubic::ease_in_out);
     let sequence_id: Entity = commands.spawn(sequence).id();
     commands.spawn((Timeline::new(sequence_id), BoardSetupTimeline));
 
     commands.insert_resource(board);
 }
-
-// pub fn setup_animation_update_condition(board_animation: ){}
 
 pub fn setup_animation_update(
     mut q_timelines: Query<&mut Timeline, &BoardSetupTimeline>,
@@ -213,6 +263,7 @@ pub fn setup_animation_update(
         return;
     };
 
+    // stops updating when timeline reaches the end
     if (timeline.time_scale > 0.0 && timeline.target_time >= sequence.duration())
         || (timeline.time_scale < 0.0 && timeline.target_time <= 0.0)
     {
