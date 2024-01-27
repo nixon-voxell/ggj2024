@@ -1,22 +1,28 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::*;
 
-// #[derive(Component)]
-// pub struct Hovered;
+#[derive(Event)]
+pub struct Clicked {
+    pub entity: Entity,
+    pub prev_entity: Option<Entity>,
+}
 
-#[derive(Component)]
-pub struct Clicked;
+#[derive(Resource, Default)]
+pub struct PreviousClicked {
+    pub entity: Option<Entity>,
+}
 
 #[derive(Component)]
 pub struct Clickable;
 
 pub fn mouse_hover(
-    mut commands: Commands,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     q_camera: Query<(&Camera, &GlobalTransform)>,
     q_clickables: Query<With<Clickable>>,
     input_mouse: Res<Input<MouseButton>>,
     rapier_context: Res<RapierContext>,
+    mut ev_clicked: EventWriter<Clicked>,
+    mut prev_clicked: ResMut<PreviousClicked>,
 ) {
     // Add Clicked component to hovered entity on clicked
     if input_mouse.just_pressed(MouseButton::Left) == false {
@@ -37,7 +43,12 @@ pub fn mouse_hover(
 
     rapier_context.intersections_with_point(cursor_position, QueryFilter::default(), |entity| {
         if q_clickables.contains(entity) {
-            commands.entity(entity).insert(Clicked);
+            ev_clicked.send(Clicked {
+                entity,
+                prev_entity: prev_clicked.entity,
+            });
+
+            prev_clicked.entity = Some(entity);
             println!("Clicking entity {:?}", entity);
         }
         // true
@@ -45,30 +56,23 @@ pub fn mouse_hover(
     });
 }
 
-pub fn clear_hover(
-    mut commands: Commands,
-    q_hovers: Query<Entity, With<Clicked>>,
-    input_mouse: Res<Input<MouseButton>>,
-) {
-    // Remove Clicked component on clicked
-    if input_mouse.just_pressed(MouseButton::Left) == false {
-        return;
-    }
-
-    for entity in q_hovers.iter() {
-        commands.entity(entity).remove::<Clicked>();
-    }
-}
-
 pub fn hover_animation(
-    mut q_clicks: Query<&mut Transform, With<Clicked>>,
-    mut q_not_clicks: Query<&mut Transform, (Without<Clicked>, With<Clickable>)>,
+    mut q_clickables: Query<&mut Transform, With<Clickable>>,
+    mut ev_clicked: EventReader<Clicked>,
 ) {
-    for mut transform in q_clicks.iter_mut() {
-        transform.scale = Vec3::splat(1.1);
-    }
+    for clicked in ev_clicked.read() {
+        let Ok(mut transform) = q_clickables.get_mut(clicked.entity) else {
+            return;
+        };
 
-    for mut transform in q_not_clicks.iter_mut() {
-        transform.scale = Vec3::splat(1.0);
+        transform.scale = Vec3::splat(1.2);
+
+        if let Some(prev_entity) = clicked.prev_entity {
+            let Ok(mut transform) = q_clickables.get_mut(prev_entity) else {
+                return;
+            };
+
+            transform.scale = Vec3::splat(1.0);
+        }
     }
 }

@@ -16,8 +16,13 @@ fn main() {
         .add_plugins((MotionGfx, MotionGfxBevy, MotionGfxVello))
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         .add_plugins(RapierDebugRenderPlugin::default())
+        // Resources
+        .insert_resource(mouse::PreviousClicked::default())
         .insert_resource(emoji::EmojiMap::default())
+        .insert_resource(game::GameStateRes::default())
+        .add_event::<mouse::Clicked>()
         // .add_systems(Startup, (setup, board::setup))
+        // Systems
         .add_systems(Startup, (setup, emoji_ui::setup))
         .add_systems(Startup, emoji::load_emoji_data)
         .add_systems(
@@ -25,7 +30,7 @@ fn main() {
             (
                 // board::setup_animation_update,
                 emoji_ui::setup_animation_update,
-                (mouse::clear_hover, mouse::mouse_hover).chain(),
+                mouse::mouse_hover,
                 mouse::hover_animation,
             ),
         )

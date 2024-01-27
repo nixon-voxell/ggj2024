@@ -86,7 +86,10 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
 
     let sequence: Sequence = flow(0.04, &tile_sequences).with_ease(ease::cubic::ease_in_out);
     let sequence_id: Entity = commands.spawn(sequence).id();
-    commands.spawn((Timeline::new(sequence_id), TileSetupTimeline));
+
+    let mut timeline: Timeline = Timeline::new(sequence_id);
+    timeline.time_scale = -1.0;
+    commands.spawn((timeline, TileSetupTimeline));
 }
 
 pub fn setup_animation_update(
