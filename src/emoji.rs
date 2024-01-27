@@ -13,8 +13,8 @@ pub struct EmojiMap {
 }
 
 pub fn load_emoji_data(asset_server: Res<AssetServer>, mut emoji_map: ResMut<EmojiMap>) {
-    let audio_folder = "./assets/emoji-sound-ogg";
-    let vector_folder = "./assets/emoji";
+    let audio_folder = "emoji-sound-ogg/";
+    let vector_folder = "emoji/";
 
     let Ok(audio_entries) = fs::read_dir(audio_folder) else {
         return;

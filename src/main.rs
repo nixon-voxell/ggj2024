@@ -6,6 +6,7 @@ mod board;
 mod emoji;
 mod emoji_ui;
 mod game;
+mod menu_ui;
 mod mouse;
 
 fn main() {
@@ -18,7 +19,7 @@ fn main() {
         .add_plugins(RapierDebugRenderPlugin::default())
         .insert_resource(emoji::EmojiMap::default())
         // .add_systems(Startup, (setup, board::setup))
-        .add_systems(Startup, (setup, emoji_ui::setup))
+        .add_systems(Startup, (setup, emoji_ui::setup, menu_ui::menu_button))
         .add_systems(Startup, emoji::load_emoji_data)
         .add_systems(
             Update,
