@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+mod board;
+
 fn main() {
     App::new()
         // Bevy plugins
