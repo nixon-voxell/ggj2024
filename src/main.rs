@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_motiongfx::prelude::*;
 
 mod board;
+mod game;
 
 fn main() {
     App::new()

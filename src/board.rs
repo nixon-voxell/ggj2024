@@ -2,6 +2,22 @@ use bevy::math::{DVec2, DVec4};
 use bevy::prelude::*;
 use bevy_motiongfx::prelude::*;
 
+#[derive(Component)]
+pub struct RedRook;
+
+#[derive(Component)]
+pub struct BlueRook;
+
+/// Position of rook in the board
+#[derive(Component)]
+pub struct RookPosition {
+    pub x: usize,
+    pub y: usize,
+}
+
+#[derive(Component)]
+pub struct RookAlive;
+
 #[derive(Clone, Copy, Default)]
 pub enum TileState {
     #[default]
@@ -115,7 +131,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
     // Initalize board resource
     let mut board: Board = Board::new(ROW_COUNT, TILE_SIZE);
 
-    // First row rooks
+    // First row rooks (blue)
     let fill_color: Color = *palette.get_or_default(&ColorKey::Blue);
     let stroke_color: Color = fill_color * 1.5;
 
@@ -135,7 +151,14 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
             },
         };
 
-        let circle_id: Entity = commands.spawn(circle.clone()).id();
+        let circle_id: Entity = commands
+            .spawn((
+                circle.clone(),
+                BlueRook,
+                RookPosition { x, y: 0 },
+                RookAlive,
+            ))
+            .id();
 
         // Add rook to board
         board.tiles[x] = TileState::Blue(Some(circle_id));
@@ -151,7 +174,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
         ]));
     }
 
-    // Last row rooks
+    // Last row rooks (red)
     let fill_color: Color = *palette.get_or_default(&ColorKey::Red);
     let stroke_color: Color = fill_color * 1.5;
 
@@ -175,7 +198,17 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
             },
         };
 
-        let circle_id: Entity = commands.spawn(circle.clone()).id();
+        let circle_id: Entity = commands
+            .spawn((
+                circle.clone(),
+                RedRook,
+                RookPosition {
+                    x,
+                    y: ROW_COUNT - 1,
+                },
+                RookAlive,
+            ))
+            .id();
 
         // Add rook to board
         board.tiles[TILE_COUNT - ROW_COUNT + x] = TileState::Red(Some(circle_id));
@@ -198,8 +231,6 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
     commands.insert_resource(board);
 }
 
-// pub fn setup_animation_update_condition(board_animation: ){}
-
 pub fn setup_animation_update(
     mut q_timelines: Query<&mut Timeline, &BoardSetupTimeline>,
     q_sequences: Query<&Sequence>,
@@ -213,6 +244,7 @@ pub fn setup_animation_update(
         return;
     };
 
+    // stops updating when timeline reaches the end
     if (timeline.time_scale > 0.0 && timeline.target_time >= sequence.duration())
         || (timeline.time_scale < 0.0 && timeline.target_time <= 0.0)
     {
