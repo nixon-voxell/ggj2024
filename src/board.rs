@@ -8,15 +8,18 @@ pub struct RedRook;
 #[derive(Component)]
 pub struct BlueRook;
 
-/// Position of rook in the board
+/// Position in the board
 #[derive(Component)]
-pub struct RookPosition {
+pub struct BoardPosition {
     pub x: usize,
     pub y: usize,
 }
 
 #[derive(Component)]
 pub struct RookAlive;
+
+#[derive(Component)]
+pub struct Tile;
 
 #[derive(Clone, Copy, Default)]
 pub enum TileState {
@@ -113,7 +116,9 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
                 },
             };
 
-            let entity: Entity = commands.spawn(rect.clone()).id();
+            let entity: Entity = commands
+                .spawn((rect.clone(), Tile, BoardPosition { x, y }))
+                .id();
 
             let mut rect_motion: VelloRectBundleMotion = VelloRectBundleMotion::new(entity, rect);
 
@@ -155,7 +160,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
             .spawn((
                 circle.clone(),
                 BlueRook,
-                RookPosition { x, y: 0 },
+                BoardPosition { x, y: 0 },
                 RookAlive,
             ))
             .id();
@@ -202,7 +207,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
             .spawn((
                 circle.clone(),
                 RedRook,
-                RookPosition {
+                BoardPosition {
                     x,
                     y: ROW_COUNT - 1,
                 },
