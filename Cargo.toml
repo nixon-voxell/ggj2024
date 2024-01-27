@@ -12,3 +12,10 @@ motiongfx_vello = { git = "https://github.com/nixon-voxell/bevy_motiongfx.git", 
 motiongfx_typst = { git = "https://github.com/nixon-voxell/bevy_motiongfx.git", rev = "9e1c6fb9b5e3ef9e32af48b641235a127aab4256" }
 bevy_rapier2d = "0.23"
 bevy-vello = {git = "https://github.com/vectorgameexperts/bevy-vello.git"}
+
+
+rand_core = "0.6"
+bevy_rand = "0.4"
+bevy_prng = { version = "0.2", features = ["rand_chacha"] }
+
+rand = "0.8"
