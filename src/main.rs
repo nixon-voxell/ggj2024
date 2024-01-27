@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_motiongfx::prelude::*;
 use bevy_rapier2d::prelude::*;
+use motiongfx_typst::{TypstCompiler, TypstCompilerPlugin};
+use motiongfx_vello::{bevy_vello_renderer::vello::peniko, svg};
 
 mod board;
 mod emoji;
@@ -16,15 +18,15 @@ fn main() {
         .add_plugins(bevy_vello::VelloPlugin)
         .add_plugins((MotionGfx, MotionGfxBevy, MotionGfxVello))
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
-        .add_plugins(RapierDebugRenderPlugin::default())
+        // .add_plugins(RapierDebugRenderPlugin::default())
         // Resources
         .insert_resource(mouse::PreviousClicked::default())
         .insert_resource(emoji::EmojiMap::default())
-        // .insert_resource(game::GameStateRes::default())
-        .insert_resource(game::GameStateRes {
-            curr_state: game::GameState::Start,
-            target_state: game::GameState::InGame,
-        })
+        .insert_resource(game::GameStateRes::default())
+        // .insert_resource(game::GameStateRes {
+        //     curr_state: game::GameState::Start,
+        //     target_state: game::GameState::InGame,
+        // })
         .add_event::<mouse::Clicked>()
         // .add_systems(Startup, (setup, board::setup))
         // Systems
