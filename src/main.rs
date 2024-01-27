@@ -2,6 +2,8 @@ use bevy::math::{DVec2, DVec4};
 use bevy::prelude::*;
 use bevy_motiongfx::prelude::*;
 
+mod board;
+
 fn main() {
     App::new()
         // Bevy plugins
