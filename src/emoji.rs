@@ -1,6 +1,12 @@
 use bevy::{prelude::*, utils::HashMap};
 use std::fs;
 
+#[derive(Event)]
+pub struct PlaySound;
+
+#[derive(Event)]
+pub struct GenerateRandomNumber;
+
 #[derive(Default)]
 pub struct EmojiData {
     pub audio_handle: Handle<AudioSource>,
