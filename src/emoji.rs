@@ -25,7 +25,14 @@ pub struct EmojiMap {
     pub data: Vec<EmojiData>,
 }
 
-pub fn load_emoji_data(asset_server: Res<AssetServer>, mut emoji_map: ResMut<EmojiMap>) {
+#[derive(Component)]
+pub struct EmojiAudio;
+
+pub fn load_emoji_data(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut emoji_map: ResMut<EmojiMap>,
+) {
     let audio_folder = "emoji-sound-ogg/";
     let vector_folder = "emoji/";
 
@@ -61,6 +68,12 @@ pub fn load_emoji_data(asset_server: Res<AssetServer>, mut emoji_map: ResMut<Emo
             vector_handle,
         })
     }
+
+    for _ in 0..4 {
+        commands
+            .spawn(AudioBundle { ..default() })
+            .insert(EmojiAudio);
+    }
 }
 
 #[derive(Resource, Default)]
@@ -87,5 +100,24 @@ pub fn generate_random_num(
             println!("Random value: {}", random_value);
             random_number.numbers[i] = random_value;
         }
+    }
+}
+
+pub fn play_audio(
+    mut commands: Commands,
+    mut ev_play_sound: EventReader<PlaySound>,
+    emoji_entity: Query<Entity, With<EmojiAudio>>,
+    random_num: Res<RandomNumber>,
+    emoji_map: Res<EmojiMap>,
+) {
+    for _ in ev_play_sound.read() {
+        let mut index: usize = 0;
+        for entity in emoji_entity.iter() {
+            commands.entity(entity).insert(AudioBundle {
+                source: emoji_map.data[index].audio_handle,
+                ..default()
+            });
+        }
+        index += 1;
     }
 }

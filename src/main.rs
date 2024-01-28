@@ -62,6 +62,7 @@ fn main() {
                 emoji_ui::play_sound_button_evt,
                 emoji_ui::placement_tiles_evt,
                 emoji_ui::emoji_tiles_evt,
+                emoji::play_audio,
                 emoji_ui::next_btn_evt,
                 emoji_ui::exit_btn_evt,
             ),
