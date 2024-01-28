@@ -1,6 +1,11 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{
+    prelude::*,
+    utils::{synccell::SyncCell, HashMap},
+};
 use rand::{rngs::ThreadRng, Rng};
 use std::fs;
+
+use crate::emoji_ui;
 
 #[derive(Event)]
 pub struct PlaySound;
@@ -67,10 +72,19 @@ pub fn generate_random_num(
     mut random_number: ResMut<RandomNumber>,
     mut ev_generate_random_number: EventReader<GenerateRandomNumber>,
 ) {
+    let mut rng = rand::thread_rng();
     for _ in ev_generate_random_number.read() {
         for i in 0..4 {
-            let mut rng = rand::thread_rng();
-            let random_value = rng.gen_range(0..25);
+            let mut random_value: usize;
+            // Make sure no same random value!
+            loop {
+                random_value = rng.gen_range(0..25);
+
+                if emoji_ui::array_contain_number(&random_number.numbers, random_value) == false {
+                    break;
+                }
+            }
+            println!("Random value: {}", random_value);
             random_number.numbers[i] = random_value;
         }
     }

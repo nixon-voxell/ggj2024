@@ -43,7 +43,6 @@ fn main() {
                 emoji_ui::setup,
                 emoji_ui::setup_menu,
                 emoji_ui::setup_action_btn,
-                emoji::generate_random_num,
             ),
         )
         .add_systems(
@@ -67,6 +66,7 @@ fn main() {
                 emoji_ui::exit_btn_evt,
             ),
         )
+        .add_systems(Update, emoji::generate_random_num)
         .run();
 }
 

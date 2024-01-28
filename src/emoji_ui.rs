@@ -8,13 +8,14 @@ use bevy_vello::{VelloVector, VelloVectorBundle};
 use motiongfx_typst::TypstCompiler;
 
 use crate::{
-    emoji::{self, EmojiMap},
+    emoji::{self, EmojiMap, RandomNumber},
     game, menu_ui, mouse, SetupTimeline,
 };
 
 #[derive(Resource)]
 pub struct EmojiGuesses {
     pub placement_tiles: [Option<Entity>; 4],
+    pub answer_tiles: [Option<Entity>; 4],
     pub numbers: [i32; 4],
 }
 
@@ -22,6 +23,7 @@ impl Default for EmojiGuesses {
     fn default() -> Self {
         Self {
             placement_tiles: [None; 4],
+            answer_tiles: [None; 4],
             numbers: [-1, -1, -1, -1],
         }
     }
@@ -81,19 +83,12 @@ pub fn setup(
     // Color palette
     let palette: ColorPalette<ColorKey> = ColorPalette::default();
 
+    let fill_color: Color = *palette.get_or_default(&ColorKey::Base0);
     let stroke_color: Color = *palette.get_or_default(&ColorKey::Base8);
     let mut tile_sequences: Vec<Sequence> = Vec::with_capacity(ROW_COUNT);
 
     for x in 0..ROW_COUNT {
-        // Spawn board tiles
-        let fill_color: Color = {
-            if x % 2 == 0 {
-                *palette.get_or_default(&ColorKey::Base0)
-            } else {
-                *palette.get_or_default(&ColorKey::Base6)
-            }
-        };
-
+        // Spawn placement tiles
         let translation: Vec3 = Vec3::new(TILE_SIZE * (x as f32) + ROW_START, 0.0, -1.0);
 
         let rect: VelloRectBundle = create_tile(
@@ -117,6 +112,7 @@ pub fn setup(
             ))
             .with_children(|parent| {
                 emoji_guesses.placement_tiles[x] = Some(parent.spawn_empty().id());
+                emoji_guesses.answer_tiles[x] = Some(parent.spawn_empty().id());
             })
             .id();
 
@@ -315,6 +311,7 @@ pub fn emoji_tiles_evt(
     mut ev_clicked: EventReader<mouse::Clicked>,
     mut guesses: ResMut<EmojiGuesses>,
     emoji_map: Res<EmojiMap>,
+    random_number: Res<RandomNumber>,
 ) {
     for clicked in ev_clicked.read() {
         if let Ok(emoji_tile) = q_emoji_tiles.get(clicked.entity) {
@@ -338,7 +335,18 @@ pub fn emoji_tiles_evt(
 
                     // last guess
                     if n == 3 {
-                        // reveal answer
+                        for t in 0..guesses.placement_tiles.len() {
+                            commands.entity(guesses.answer_tiles[t].unwrap()).insert(
+                                bevy_vello::VelloVectorBundle {
+                                    vector: emoji_map.data[random_number.numbers[t]]
+                                        .vector_handle
+                                        .clone(),
+                                    transform: Transform::from_xyz(0.0, 20.0, 1.0)
+                                        .with_scale(Vec3::splat(0.08)),
+                                    ..default()
+                                },
+                            );
+                        }
                     }
                     break;
                 }
@@ -368,9 +376,12 @@ pub fn next_btn_evt(
             for t in 0..guesses.placement_tiles.len() {
                 guesses.numbers[t] = -1;
 
-                let tile = guesses.placement_tiles[t];
                 commands
-                    .entity(tile.unwrap())
+                    .entity(guesses.placement_tiles[t].unwrap())
+                    .remove::<Handle<bevy_vello::VelloVector>>();
+
+                commands
+                    .entity(guesses.answer_tiles[t].unwrap())
                     .remove::<Handle<bevy_vello::VelloVector>>();
             }
 
