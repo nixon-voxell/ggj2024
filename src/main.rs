@@ -53,8 +53,6 @@ fn main() {
                 mouse::mouse_hover,
                 mouse::hover_animation,
                 game::game_manager,
-                // store_four_random_values,
-                // print_random_numbers,
             ),
         )
         .add_systems(
@@ -63,6 +61,7 @@ fn main() {
                 emoji_ui::play_sound_button_evt,
                 emoji_ui::placement_tiles_evt,
                 emoji_ui::emoji_tiles_evt,
+                emoji::play_audio,
             ),
         )
         .run();
@@ -96,25 +95,3 @@ pub fn setup_animation_update(
         timeline.target_time += timeline.time_scale * time.delta_seconds();
     }
 }
-
-// #[derive(Resource)]
-// struct RandomNumber(u32);
-
-// fn store_random_value(mut commands: Commands) {
-//     let mut rng = rand::thread_rng();
-//     let random_value = rng.gen_range(0..25);
-
-//     let random_number = RandomNumber(random_value);
-
-//     println!("Integer: {}", random_value);
-
-//     commands.insert_resource(random_number);
-// }
-
-// fn generate_four_random_numbers(mut commands: Commands, random_numbers: ResMut<RandomNumber>) {
-//     for _ in 0..4 {
-//         let random_number = random_numbers.0;
-
-//         println!("Generated Random Number: {}", random_number);
-//     }
-// }
