@@ -4,6 +4,7 @@ use bevy::{
 };
 use bevy_motiongfx::prelude::*;
 use bevy_rapier2d::prelude::*;
+use bevy_vello::{VelloVector, VelloVectorBundle};
 use motiongfx_typst::TypstCompiler;
 
 use crate::{
@@ -317,6 +318,10 @@ pub fn emoji_tiles_evt(
 ) {
     for clicked in ev_clicked.read() {
         if let Ok(emoji_tile) = q_emoji_tiles.get(clicked.entity) {
+            if array_contain_number(&guesses.numbers, emoji_tile.index as i32) {
+                continue;
+            }
+
             for n in 0..guesses.numbers.len() {
                 if guesses.numbers[n] == -1 {
                     println!("guess index: {}", emoji_tile.index);
@@ -338,6 +343,38 @@ pub fn emoji_tiles_evt(
                     break;
                 }
             }
+        }
+    }
+}
+
+pub fn array_contain_number<T: Eq + PartialEq>(array: &[T], number: T) -> bool {
+    for a in array {
+        if *a == number {
+            return true;
+        }
+    }
+    false
+}
+
+pub fn next_btn_evt(
+    mut commands: Commands,
+    q_next_btn: Query<With<NextBtn>>,
+    mut ev_clicked: EventReader<mouse::Clicked>,
+    mut ev_gen_rand_num: EventWriter<emoji::GenerateRandomNumber>,
+    mut guesses: ResMut<EmojiGuesses>,
+) {
+    for clicked in ev_clicked.read() {
+        if let Ok(_) = q_next_btn.get(clicked.entity) {
+            for t in 0..guesses.placement_tiles.len() {
+                guesses.numbers[t] = -1;
+
+                let tile = guesses.placement_tiles[t];
+                commands
+                    .entity(tile.unwrap())
+                    .remove::<Handle<bevy_vello::VelloVector>>();
+            }
+
+            ev_gen_rand_num.send(emoji::GenerateRandomNumber);
         }
     }
 }

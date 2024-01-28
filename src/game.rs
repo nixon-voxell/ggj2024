@@ -18,7 +18,6 @@ pub struct GameStateRes {
 }
 
 pub fn game_manager(
-    mut game_state: ResMut<GameStateRes>,
     mut q_emoji_ui_setup: Query<
         &mut Timeline,
         (
@@ -33,6 +32,7 @@ pub fn game_manager(
             Without<emoji_ui::TileSetupTimeline>,
         ),
     >,
+    mut game_state: ResMut<GameStateRes>,
 ) {
     // Game state already achieved
     if game_state.curr_state == game_state.target_state {
