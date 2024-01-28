@@ -16,7 +16,8 @@ pub struct EmojiData {
 
 #[derive(Resource, Default)]
 pub struct EmojiMap {
-    pub map: HashMap<String, EmojiData>,
+    pub names: Vec<String>,
+    pub data: Vec<EmojiData>,
 }
 
 pub fn load_emoji_data(asset_server: Res<AssetServer>, mut emoji_map: ResMut<EmojiMap>) {
@@ -46,14 +47,14 @@ pub fn load_emoji_data(asset_server: Res<AssetServer>, mut emoji_map: ResMut<Emo
 
         let name: String = audio_entry.file_name().into_string().unwrap();
 
-        // println!("{}", name);
-        emoji_map.map.insert(
-            name.split('.').next().unwrap().to_owned(),
-            EmojiData {
-                audio_handle,
-                vector_handle,
-            },
-        );
+        emoji_map
+            .names
+            .push(name.split('.').next().unwrap().to_owned());
+
+        emoji_map.data.push(EmojiData {
+            audio_handle,
+            vector_handle,
+        })
     }
 }
 

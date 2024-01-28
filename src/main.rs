@@ -27,7 +27,7 @@ fn main() {
         .insert_resource(emoji::EmojiMap::default())
         .insert_resource(game::GameStateRes::default())
         .insert_resource(emoji_ui::PlacementIndex(0))
-        .insert_resource(emoji_ui::EmojiGuesses::default());
+        .insert_resource(emoji_ui::EmojiGuesses::default())
         .add_event::<mouse::Clicked>()
         .add_event::<emoji::PlaySound>()
         // .add_systems(Startup, (setup, board::setup))

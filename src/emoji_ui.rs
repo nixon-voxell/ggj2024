@@ -35,7 +35,7 @@ pub struct EmojiTile {
 }
 
 #[derive(Component)]
-pub struct EmojiMenuBtn(pub String);
+pub struct EmojiMenuBtn;
 
 #[derive(Component)]
 pub struct PlacementMenuBtn;
@@ -155,8 +155,6 @@ pub fn setup_menu(
     let fill_color: Color = *palette.get_or_default(&ColorKey::Base2);
     let mut tile_sequences: Vec<Sequence> = Vec::with_capacity(ROW_COUNT);
 
-    let emoji_keys: Vec<&String> = emoji_map.map.keys().collect();
-
     for x in 0..ROW_COUNT {
         for y in 0..ROW_COUNT {
             // Spawn board tiles
@@ -179,20 +177,19 @@ pub fn setup_menu(
 
             let index: usize = x + y * ROW_COUNT;
             let mut icon_id: Option<Entity> = None;
-            let emoji_name: &String = emoji_keys[index];
             let entity: Entity = commands
                 .spawn((
                     rect.clone(),
                     EmojiTile { index },
                     Collider::cuboid(HALF_TILE_SIZE, HALF_TILE_SIZE),
                     mouse::Clickable,
-                    EmojiMenuBtn(emoji_name.clone()),
+                    EmojiMenuBtn,
                 ))
                 .with_children(|parent| {
                     icon_id = Some(
                         parent
                             .spawn(bevy_vello::VelloVectorBundle {
-                                vector: emoji_map.map[emoji_name].vector_handle.clone(),
+                                vector: emoji_map.data[index].vector_handle.clone(),
                                 transform: Transform::from_xyz(0.0, -TILE_SIZE * 0.5, 1.0)
                                     .with_scale(Vec3::splat(0.0)),
                                 ..default()
