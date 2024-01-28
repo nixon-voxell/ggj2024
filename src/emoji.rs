@@ -58,7 +58,7 @@ pub fn load_emoji_data(asset_server: Res<AssetServer>, mut emoji_map: ResMut<Emo
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct RandomNumber {
     pub numbers: [usize; 4],
 }

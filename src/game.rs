@@ -3,7 +3,7 @@ use bevy_motiongfx::prelude::*;
 
 use crate::{emoji_ui, menu_ui};
 
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 pub enum GameState {
     #[default]
     Start,
@@ -39,6 +39,7 @@ pub fn game_manager(
         return;
     }
 
+    println!("Game state changes to: {:#?}", game_state.target_state);
     match game_state.target_state {
         GameState::Start => {
             for mut emoji_ui_setup in q_emoji_ui_setup.iter_mut() {

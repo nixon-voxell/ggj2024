@@ -25,11 +25,13 @@ fn main() {
         // Resources
         .insert_resource(mouse::PreviousClicked::default())
         .insert_resource(emoji::EmojiMap::default())
+        .insert_resource(emoji::RandomNumber::default())
         .insert_resource(game::GameStateRes::default())
         .insert_resource(emoji_ui::PlacementIndex(0))
         .insert_resource(emoji_ui::EmojiGuesses::default())
         .add_event::<mouse::Clicked>()
         .add_event::<emoji::PlaySound>()
+        .add_event::<emoji::GenerateRandomNumber>()
         // .add_systems(Startup, (setup, board::setup))
         // Systems
         .add_systems(PreStartup, emoji::load_emoji_data)
@@ -40,7 +42,7 @@ fn main() {
             (
                 emoji_ui::setup,
                 emoji_ui::setup_menu,
-                emoji_ui::setup_play_sound_btn,
+                emoji_ui::setup_action_btn,
                 emoji::generate_random_num,
             ),
         )
@@ -51,10 +53,8 @@ fn main() {
                 setup_animation_update,
                 menu_ui::start_button_evt,
                 mouse::mouse_hover,
-                mouse::hover_animation,
+                // mouse::hover_animation,
                 game::game_manager,
-                // store_four_random_values,
-                // print_random_numbers,
             ),
         )
         .add_systems(
@@ -63,6 +63,7 @@ fn main() {
                 emoji_ui::play_sound_button_evt,
                 emoji_ui::placement_tiles_evt,
                 emoji_ui::emoji_tiles_evt,
+                emoji_ui::exit_btn_evt,
             ),
         )
         .run();
@@ -96,25 +97,3 @@ pub fn setup_animation_update(
         timeline.target_time += timeline.time_scale * time.delta_seconds();
     }
 }
-
-// #[derive(Resource)]
-// struct RandomNumber(u32);
-
-// fn store_random_value(mut commands: Commands) {
-//     let mut rng = rand::thread_rng();
-//     let random_value = rng.gen_range(0..25);
-
-//     let random_number = RandomNumber(random_value);
-
-//     println!("Integer: {}", random_value);
-
-//     commands.insert_resource(random_number);
-// }
-
-// fn generate_four_random_numbers(mut commands: Commands, random_numbers: ResMut<RandomNumber>) {
-//     for _ in 0..4 {
-//         let random_number = random_numbers.0;
-
-//         println!("Generated Random Number: {}", random_number);
-//     }
-// }
