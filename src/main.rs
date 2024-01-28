@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use bevy_motiongfx::prelude::*;
 use bevy_rapier2d::prelude::*;
 use motiongfx_typst::TypstCompilerPlugin;
-use rand::{rngs::ThreadRng, Rng};
 
 mod emoji;
 mod emoji_ui;
@@ -43,9 +42,9 @@ fn main() {
                 emoji_ui::setup,
                 emoji_ui::setup_menu,
                 emoji_ui::setup_play_sound_btn,
+                emoji::generate_random_num,
             ),
         )
-        .add_systems(Startup, store_four_random_values)
         .add_systems(
             Update,
             (
@@ -55,8 +54,8 @@ fn main() {
                 mouse::mouse_hover,
                 mouse::hover_animation,
                 game::game_manager,
-                store_four_random_values,
-                print_random_numbers,
+                // store_four_random_values,
+                // print_random_numbers,
             ),
         )
         .run();
@@ -112,25 +111,3 @@ pub fn setup_animation_update(
 //         println!("Generated Random Number: {}", random_number);
 //     }
 // }
-
-#[derive(Component)]
-struct RandomNumber(u32);
-
-fn store_four_random_values(mut commands: Commands) {
-    for _ in 0..4 {
-        let mut rng = rand::thread_rng();
-        let random_value = rng.gen_range(0..25);
-
-        let random_number = RandomNumber(random_value);
-
-        // println!("Generated Random Number: {}", random_value);
-
-        commands.spawn_empty().insert(random_number);
-    }
-}
-
-fn print_random_numbers(query: Query<&RandomNumber>) {
-    for random_number in query.iter() {
-        println!("Stored Random Number: {}", random_number.0);
-    }
-}
