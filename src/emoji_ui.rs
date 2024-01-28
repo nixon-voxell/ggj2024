@@ -11,6 +11,21 @@ use crate::{
     menu_ui, mouse, SetupTimeline,
 };
 
+#[derive(Resource)]
+pub struct EmojiGuesses {
+    pub placement_tiles: [Option<Entity>; 4],
+    pub numbers: [i32; 4],
+}
+
+impl Default for EmojiGuesses {
+    fn default() -> Self {
+        Self {
+            placement_tiles: [None; 4],
+            numbers: [-1, -1, -1, -1],
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct TileSetupTimeline;
 
@@ -18,6 +33,15 @@ pub struct TileSetupTimeline;
 pub struct EmojiTile {
     pub index: usize,
 }
+
+#[derive(Component)]
+pub struct EmojiMenuBtn(pub String);
+
+#[derive(Component)]
+pub struct PlacementMenuBtn;
+
+#[derive(Resource)]
+pub struct PlacementIndex(pub usize);
 
 #[derive(Component, Default)]
 pub struct PlaySoundBtn;
@@ -32,7 +56,11 @@ const SPACING_SCALE: f32 = 3.0;
 const STARTING_SCALE: Vec3 = Vec3::splat(0.5);
 const LOTTIE_SCALE: Vec3 = Vec3::splat(0.05);
 
-pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>>) {
+pub fn setup(
+    mut commands: Commands,
+    mut fragments: ResMut<Assets<VelloFragment>>,
+    mut emoji_guesses: ResMut<EmojiGuesses>,
+) {
     // Number of rows on the board
     const ROW_COUNT: usize = 4;
     // The size of a single tile
@@ -78,7 +106,11 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
                 EmojiTile { index: x },
                 Collider::cuboid(HALF_TILE_SIZE, HALF_TILE_SIZE),
                 mouse::Clickable,
+                PlacementMenuBtn,
             ))
+            .with_children(|parent| {
+                emoji_guesses.placement_tiles[x] = Some(parent.spawn_empty().id());
+            })
             .id();
 
         let mut rect_motion: VelloRectBundleMotion = VelloRectBundleMotion::new(entity, rect);
@@ -104,7 +136,7 @@ pub fn setup(mut commands: Commands, mut fragments: ResMut<Assets<VelloFragment>
 pub fn setup_menu(
     mut commands: Commands,
     mut fragments: ResMut<Assets<VelloFragment>>,
-    mut emoji_map: ResMut<EmojiMap>,
+    emoji_map: Res<EmojiMap>,
 ) {
     // Number of rows on the board
     const ROW_COUNT: usize = 5;
@@ -146,24 +178,35 @@ pub fn setup_menu(
             );
 
             let index: usize = x + y * ROW_COUNT;
+            let mut icon_id: Option<Entity> = None;
+            let emoji_name: &String = emoji_keys[index];
             let entity: Entity = commands
                 .spawn((
                     rect.clone(),
                     EmojiTile { index },
                     Collider::cuboid(HALF_TILE_SIZE, HALF_TILE_SIZE),
                     mouse::Clickable,
+                    EmojiMenuBtn(emoji_name.clone()),
                 ))
                 .with_children(|parent| {
-                    parent.spawn(bevy_vello::VelloVectorBundle {
-                        vector: emoji_map.map[emoji_keys[index]].vector_handle.clone(),
-                        transform: Transform::from_xyz(0.0, -TILE_SIZE * 0.5, 1.0)
-                            .with_scale(LOTTIE_SCALE),
-                        ..default()
-                    });
+                    icon_id = Some(
+                        parent
+                            .spawn(bevy_vello::VelloVectorBundle {
+                                vector: emoji_map.map[emoji_name].vector_handle.clone(),
+                                transform: Transform::from_xyz(0.0, -TILE_SIZE * 0.5, 1.0)
+                                    .with_scale(Vec3::splat(0.0)),
+                                ..default()
+                            })
+                            .id(),
+                    );
                 })
                 .id();
 
             let mut rect_motion: VelloRectBundleMotion = VelloRectBundleMotion::new(entity, rect);
+            let mut icon_motion: TransformMotion = TransformMotion::new(
+                icon_id.unwrap(),
+                Transform::from_xyz(0.0, -TILE_SIZE * 0.5, 1.0).with_scale(Vec3::splat(0.0)),
+            );
 
             // Tile initial animation
             tile_sequences.push(create_tile_animation(
@@ -173,6 +216,8 @@ pub fn setup_menu(
                 fill_color,
                 stroke_color,
             ));
+            let mut act: ActionBuilder = ActionBuilder::new(&mut commands);
+            tile_sequences.push(act.play(icon_motion.scale_to(LOTTIE_SCALE), 1.0));
         }
     }
 
@@ -196,12 +241,12 @@ pub fn setup_play_sound_btn(
         &mut commands,
         &mut fragments,
         &mut typst_compiler,
-        DVec2::new(150.0, 100.0),
+        DVec2::new(200.0, 100.0),
         100.0,
         fill,
         Vec3::new(500.0, -300.0, 0.0),
         Vec3::Y * 100.0,
-        "= 🎵",
+        "= \\~ 🎵",
     );
 
     let sequence: Sequence = button_seq.with_ease(ease::cubic::ease_in_out);
@@ -215,11 +260,39 @@ pub fn setup_play_sound_btn(
 pub fn play_sound_button_evt(
     q_play_sound_btns: Query<&PlaySoundBtn>,
     mut ev_clicked: EventReader<mouse::Clicked>,
-    // mut ev_play_sound: EventWriter<emoji::PlaySound>,
+    mut ev_play_sound: EventWriter<emoji::PlaySound>,
 ) {
     for clicked in ev_clicked.read() {
         if let Ok(_) = q_play_sound_btns.get(clicked.entity) {
-            // ev_play_sound.send();
+            ev_play_sound.send(emoji::PlaySound);
+        }
+    }
+}
+
+pub fn placement_tiles_evt(
+    q_placement_tile: Query<&EmojiTile, With<PlacementMenuBtn>>,
+    mut ev_clicked: EventReader<mouse::Clicked>,
+    mut placement_index: ResMut<PlacementIndex>,
+) {
+    for clicked in ev_clicked.read() {
+        if let Ok(placement_tile) = q_placement_tile.get(clicked.entity) {
+            placement_index.0 = placement_tile.index;
+        }
+    }
+}
+
+pub fn emoji_tiles_evt(
+    q_emoji_tiles: Query<&EmojiTile, With<EmojiMenuBtn>>,
+    mut ev_clicked: EventReader<mouse::Clicked>,
+    mut guesses: ResMut<EmojiGuesses>,
+) {
+    for clicked in ev_clicked.read() {
+        if let Ok(emoji_tile) = q_emoji_tiles.get(clicked.entity) {
+            for mut n in guesses.numbers {
+                if n != -1 {
+                    n = emoji_tile.index as i32;
+                }
+            }
         }
     }
 }

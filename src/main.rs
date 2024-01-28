@@ -27,11 +27,10 @@ fn main() {
         .insert_resource(mouse::PreviousClicked::default())
         .insert_resource(emoji::EmojiMap::default())
         .insert_resource(game::GameStateRes::default())
-        // .insert_resource(game::GameStateRes {
-        //     curr_state: game::GameState::Start,
-        //     target_state: game::GameState::InGame,
-        // })
+        .insert_resource(emoji_ui::PlacementIndex(0))
+        .insert_resource(emoji_ui::EmojiGuesses::default());
         .add_event::<mouse::Clicked>()
+        .add_event::<emoji::PlaySound>()
         // .add_systems(Startup, (setup, board::setup))
         // Systems
         .add_systems(PreStartup, emoji::load_emoji_data)
@@ -57,6 +56,14 @@ fn main() {
                 game::game_manager,
                 store_four_random_values,
                 print_random_numbers,
+            ),
+        )
+        .add_systems(
+            Update,
+            (
+                emoji_ui::play_sound_button_evt,
+                emoji_ui::placement_tiles_evt,
+                emoji_ui::emoji_tiles_evt,
             ),
         )
         .run();
