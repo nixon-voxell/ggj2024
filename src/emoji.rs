@@ -71,7 +71,7 @@ pub fn load_emoji_data(
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct RandomNumber {
     pub numbers: [usize; 4],
 }

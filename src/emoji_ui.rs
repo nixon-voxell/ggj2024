@@ -4,11 +4,12 @@ use bevy::{
 };
 use bevy_motiongfx::prelude::*;
 use bevy_rapier2d::prelude::*;
+use bevy_vello::{VelloVector, VelloVectorBundle};
 use motiongfx_typst::TypstCompiler;
 
 use crate::{
     emoji::{self, EmojiMap},
-    menu_ui, mouse, SetupTimeline,
+    game, menu_ui, mouse, SetupTimeline,
 };
 
 #[derive(Resource)]
@@ -45,6 +46,12 @@ pub struct PlacementIndex(pub usize);
 
 #[derive(Component, Default)]
 pub struct PlaySoundBtn;
+
+#[derive(Component, Default)]
+pub struct NextBtn;
+
+#[derive(Component, Default)]
+pub struct ExitBtn;
 
 #[derive(Component)]
 pub struct PlayerSelection;
@@ -218,7 +225,7 @@ pub fn setup_menu(
         }
     }
 
-    let sequence: Sequence = flow(0.1, &tile_sequences).with_ease(ease::cubic::ease_in_out);
+    let sequence: Sequence = flow(0.02, &tile_sequences).with_ease(ease::cubic::ease_in_out);
     let sequence_id: Entity = commands.spawn(sequence).id();
 
     let mut timeline: Timeline = Timeline::new(sequence_id);
@@ -226,27 +233,51 @@ pub fn setup_menu(
     commands.spawn((timeline, SetupTimeline, TileSetupTimeline));
 }
 
-pub fn setup_play_sound_btn(
+pub fn setup_action_btn(
     mut commands: Commands,
     mut fragments: ResMut<Assets<VelloFragment>>,
     mut typst_compiler: ResMut<TypstCompiler>,
 ) {
     let palette: ColorPalette<ColorKey> = ColorPalette::default();
-    let fill: Color = *palette.get_or_default(&ColorKey::Purple);
 
-    let button_seq: Sequence = menu_ui::create_button::<PlaySoundBtn>(
+    let play_btn_seq: Sequence = menu_ui::create_button::<PlaySoundBtn>(
         &mut commands,
         &mut fragments,
         &mut typst_compiler,
-        DVec2::new(200.0, 100.0),
+        DVec2::new(200.0, 70.0),
         100.0,
-        fill,
-        Vec3::new(500.0, -300.0, 0.0),
+        *palette.get_or_default(&ColorKey::Purple),
+        Vec3::new(500.0, -100.0, 0.0),
         Vec3::Y * 100.0,
         "= \\~ 🎵",
     );
 
-    let sequence: Sequence = button_seq.with_ease(ease::cubic::ease_in_out);
+    let next_btn_seq: Sequence = menu_ui::create_button::<NextBtn>(
+        &mut commands,
+        &mut fragments,
+        &mut typst_compiler,
+        DVec2::new(200.0, 70.0),
+        100.0,
+        *palette.get_or_default(&ColorKey::Orange),
+        Vec3::new(500.0, -200.0, 0.0),
+        Vec3::Y * 100.0,
+        "= Next",
+    );
+
+    let exit_btn_seq: Sequence = menu_ui::create_button::<ExitBtn>(
+        &mut commands,
+        &mut fragments,
+        &mut typst_compiler,
+        DVec2::new(200.0, 70.0),
+        100.0,
+        *palette.get_or_default(&ColorKey::Red),
+        Vec3::new(500.0, -300.0, 0.0),
+        Vec3::Y * 100.0,
+        "= Exit",
+    );
+
+    let sequence: Sequence =
+        flow(0.1, &[play_btn_seq, next_btn_seq, exit_btn_seq]).with_ease(ease::cubic::ease_in_out);
     let sequence_id: Entity = commands.spawn(sequence).id();
 
     let mut timeline: Timeline = Timeline::new(sequence_id);
@@ -279,17 +310,83 @@ pub fn placement_tiles_evt(
 }
 
 pub fn emoji_tiles_evt(
+    mut commands: Commands,
     q_emoji_tiles: Query<&EmojiTile, With<EmojiMenuBtn>>,
     mut ev_clicked: EventReader<mouse::Clicked>,
     mut guesses: ResMut<EmojiGuesses>,
+    emoji_map: Res<EmojiMap>,
 ) {
     for clicked in ev_clicked.read() {
         if let Ok(emoji_tile) = q_emoji_tiles.get(clicked.entity) {
-            for mut n in guesses.numbers {
-                if n != -1 {
-                    n = emoji_tile.index as i32;
+            if array_contain_number(&guesses.numbers, emoji_tile.index as i32) {
+                continue;
+            }
+
+            for n in 0..guesses.numbers.len() {
+                if guesses.numbers[n] == -1 {
+                    println!("guess index: {}", emoji_tile.index);
+                    guesses.numbers[n] = emoji_tile.index as i32;
+
+                    commands.entity(guesses.placement_tiles[n].unwrap()).insert(
+                        bevy_vello::VelloVectorBundle {
+                            vector: emoji_map.data[emoji_tile.index].vector_handle.clone(),
+                            transform: Transform::from_xyz(0.0, -50.0, 1.0)
+                                .with_scale(Vec3::splat(0.1)),
+                            ..default()
+                        },
+                    );
+
+                    // last guess
+                    if n == 3 {
+                        // reveal answer
+                    }
+                    break;
                 }
             }
+        }
+    }
+}
+
+pub fn array_contain_number<T: Eq + PartialEq>(array: &[T], number: T) -> bool {
+    for a in array {
+        if *a == number {
+            return true;
+        }
+    }
+    false
+}
+
+pub fn next_btn_evt(
+    mut commands: Commands,
+    q_next_btn: Query<With<NextBtn>>,
+    mut ev_clicked: EventReader<mouse::Clicked>,
+    mut ev_gen_rand_num: EventWriter<emoji::GenerateRandomNumber>,
+    mut guesses: ResMut<EmojiGuesses>,
+) {
+    for clicked in ev_clicked.read() {
+        if let Ok(_) = q_next_btn.get(clicked.entity) {
+            for t in 0..guesses.placement_tiles.len() {
+                guesses.numbers[t] = -1;
+
+                let tile = guesses.placement_tiles[t];
+                commands
+                    .entity(tile.unwrap())
+                    .remove::<Handle<bevy_vello::VelloVector>>();
+            }
+
+            ev_gen_rand_num.send(emoji::GenerateRandomNumber);
+        }
+    }
+}
+
+pub fn exit_btn_evt(
+    q_exit_btn: Query<With<ExitBtn>>,
+    mut ev_clicked: EventReader<mouse::Clicked>,
+    mut game_state: ResMut<game::GameStateRes>,
+) {
+    for clicked in ev_clicked.read() {
+        if let Ok(_) = q_exit_btn.get(clicked.entity) {
+            game_state.target_state = game::GameState::Start;
         }
     }
 }

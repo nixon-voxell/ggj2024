@@ -3,7 +3,7 @@ use bevy_motiongfx::prelude::*;
 
 use crate::{emoji_ui, menu_ui};
 
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 pub enum GameState {
     #[default]
     Start,
@@ -18,7 +18,6 @@ pub struct GameStateRes {
 }
 
 pub fn game_manager(
-    mut game_state: ResMut<GameStateRes>,
     mut q_emoji_ui_setup: Query<
         &mut Timeline,
         (
@@ -33,12 +32,14 @@ pub fn game_manager(
             Without<emoji_ui::TileSetupTimeline>,
         ),
     >,
+    mut game_state: ResMut<GameStateRes>,
 ) {
     // Game state already achieved
     if game_state.curr_state == game_state.target_state {
         return;
     }
 
+    println!("Game state changes to: {:#?}", game_state.target_state);
     match game_state.target_state {
         GameState::Start => {
             for mut emoji_ui_setup in q_emoji_ui_setup.iter_mut() {

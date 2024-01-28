@@ -25,11 +25,13 @@ fn main() {
         // Resources
         .insert_resource(mouse::PreviousClicked::default())
         .insert_resource(emoji::EmojiMap::default())
+        .insert_resource(emoji::RandomNumber::default())
         .insert_resource(game::GameStateRes::default())
         .insert_resource(emoji_ui::PlacementIndex(0))
         .insert_resource(emoji_ui::EmojiGuesses::default())
         .add_event::<mouse::Clicked>()
         .add_event::<emoji::PlaySound>()
+        .add_event::<emoji::GenerateRandomNumber>()
         // .add_systems(Startup, (setup, board::setup))
         // Systems
         .add_systems(PreStartup, emoji::load_emoji_data)
@@ -40,7 +42,7 @@ fn main() {
             (
                 emoji_ui::setup,
                 emoji_ui::setup_menu,
-                emoji_ui::setup_play_sound_btn,
+                emoji_ui::setup_action_btn,
                 emoji::generate_random_num,
             ),
         )
@@ -51,7 +53,7 @@ fn main() {
                 setup_animation_update,
                 menu_ui::start_button_evt,
                 mouse::mouse_hover,
-                mouse::hover_animation,
+                // mouse::hover_animation,
                 game::game_manager,
             ),
         )
@@ -62,6 +64,8 @@ fn main() {
                 emoji_ui::placement_tiles_evt,
                 emoji_ui::emoji_tiles_evt,
                 emoji::play_audio,
+                emoji_ui::next_btn_evt,
+                emoji_ui::exit_btn_evt,
             ),
         )
         .run();
