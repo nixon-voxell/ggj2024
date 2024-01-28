@@ -113,11 +113,18 @@ pub fn play_audio(
     for _ in ev_play_sound.read() {
         let mut index: usize = 0;
         for entity in emoji_entity.iter() {
-            commands.entity(entity).insert(AudioBundle {
-                source: emoji_map.data[index].audio_handle,
-                ..default()
-            });
+            commands.entity(entity).despawn();
+
+            commands.spawn((
+                AudioBundle {
+                    source: emoji_map.data[random_num.numbers[index]]
+                        .audio_handle
+                        .clone(),
+                    ..default()
+                },
+                EmojiAudio,
+            ));
+            index += 1;
         }
-        index += 1;
     }
 }
