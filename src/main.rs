@@ -37,9 +37,15 @@ fn main() {
         .add_systems(PreStartup, emoji::load_emoji_data)
         .add_systems(Startup, setup)
         .add_systems(Startup, menu_ui::menu_button)
-        .add_systems(Startup, (emoji_ui::setup, emoji_ui::setup_menu))
+        .add_systems(
+            Startup,
+            (
+                emoji_ui::setup,
+                emoji_ui::setup_menu,
+                emoji_ui::setup_play_sound_btn,
+            ),
+        )
         .add_systems(Startup, store_four_random_values)
-        .add_systems(Startup, emoji::load_emoji_data)
         .add_systems(
             Update,
             (

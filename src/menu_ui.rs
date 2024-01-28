@@ -32,7 +32,7 @@ pub fn menu_button(
         &mut fragments,
         &mut typst_compiler,
         DVec2::new(200.0, 100.0),
-        10.0,
+        100.0,
         start_color,
         Vec3::new(-500.0, 0.0, 0.0),
         OFFSET,
@@ -44,7 +44,7 @@ pub fn menu_button(
         &mut fragments,
         &mut typst_compiler,
         DVec2::new(200.0, 100.0),
-        10.0,
+        100.0,
         quit_color,
         Vec3::new(-500.0, -200.0, 0.0),
         OFFSET,
@@ -59,24 +59,30 @@ pub fn menu_button(
     commands.spawn((timeline, SetupTimeline, MenuSetupTimeline));
 }
 
-fn create_button<Comp: Component + Default>(
+pub fn start_button_evt(
+    q_start_btns: Query<&StartBtn>,
+    mut ev_clicked: EventReader<mouse::Clicked>,
+    mut game_state: ResMut<GameStateRes>,
+) {
+    for clicked in ev_clicked.read() {
+        if let Ok(_) = q_start_btns.get(clicked.entity) {
+            game_state.target_state = GameState::InGame;
+        }
+    }
+}
+
+pub fn create_button<Comp: Component + Default>(
     commands: &mut Commands,
     fragments: &mut ResMut<Assets<VelloFragment>>,
     typst_compiler: &mut ResMut<TypstCompiler>,
     size: DVec2,
-    border_radius: f64,
+    radius: f64,
     fill: Color,
     translation: Vec3,
     translate_animation: Vec3,
     label: &str,
 ) -> Sequence {
-    let rect = create_rect(
-        fragments,
-        size,
-        border_radius,
-        fill.with_a(0.0),
-        translation,
-    );
+    let rect: VelloRectBundle = create_rect(fragments, size, radius, fill.with_a(0.0), translation);
 
     let header: String = r###"
         #set page(width: 100pt, margin: 8pt)
@@ -144,27 +150,15 @@ fn create_button<Comp: Component + Default>(
     )
 }
 
-pub fn start_button_evt(
-    q_clickables: Query<&StartBtn>,
-    mut ev_clicked: EventReader<mouse::Clicked>,
-    mut game_state: ResMut<GameStateRes>,
-) {
-    for clicked in ev_clicked.read() {
-        if let Ok(_) = q_clickables.get(clicked.entity) {
-            game_state.target_state = GameState::InGame;
-        }
-    }
-}
-
 fn create_rect(
     fragments: &mut ResMut<Assets<VelloFragment>>,
     size: DVec2,
-    border_radius: f64,
+    radius: f64,
     fill: Color,
     translation: Vec3,
 ) -> VelloRectBundle {
     VelloRectBundle {
-        rect: VelloRect::anchor_center(size, DVec4::splat(border_radius)),
+        rect: VelloRect::anchor_center(size, DVec4::splat(radius)),
         fill: FillStyle::from_brush(fill),
         stroke: StrokeStyle::from_brush(Color::NONE).with_style(0.0),
         fragment_bundle: VelloFragmentBundle {

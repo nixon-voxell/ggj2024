@@ -4,8 +4,12 @@ use bevy::{
 };
 use bevy_motiongfx::prelude::*;
 use bevy_rapier2d::prelude::*;
+use motiongfx_typst::TypstCompiler;
 
-use crate::{emoji::EmojiMap, mouse, SetupTimeline};
+use crate::{
+    emoji::{self, EmojiMap},
+    menu_ui, mouse, SetupTimeline,
+};
 
 #[derive(Component)]
 pub struct TileSetupTimeline;
@@ -14,6 +18,9 @@ pub struct TileSetupTimeline;
 pub struct EmojiTile {
     pub index: usize,
 }
+
+#[derive(Component, Default)]
+pub struct PlaySoundBtn;
 
 #[derive(Component)]
 pub struct PlayerSelection;
@@ -175,6 +182,46 @@ pub fn setup_menu(
     let mut timeline: Timeline = Timeline::new(sequence_id);
     timeline.time_scale = -1.0;
     commands.spawn((timeline, SetupTimeline, TileSetupTimeline));
+}
+
+pub fn setup_play_sound_btn(
+    mut commands: Commands,
+    mut fragments: ResMut<Assets<VelloFragment>>,
+    mut typst_compiler: ResMut<TypstCompiler>,
+) {
+    let palette: ColorPalette<ColorKey> = ColorPalette::default();
+    let fill: Color = *palette.get_or_default(&ColorKey::Purple);
+
+    let button_seq: Sequence = menu_ui::create_button::<PlaySoundBtn>(
+        &mut commands,
+        &mut fragments,
+        &mut typst_compiler,
+        DVec2::new(150.0, 100.0),
+        100.0,
+        fill,
+        Vec3::new(500.0, -300.0, 0.0),
+        Vec3::Y * 100.0,
+        "= 🎵",
+    );
+
+    let sequence: Sequence = button_seq.with_ease(ease::cubic::ease_in_out);
+    let sequence_id: Entity = commands.spawn(sequence).id();
+
+    let mut timeline: Timeline = Timeline::new(sequence_id);
+    timeline.time_scale = -1.0;
+    commands.spawn((timeline, SetupTimeline, TileSetupTimeline));
+}
+
+pub fn play_sound_button_evt(
+    q_play_sound_btns: Query<&PlaySoundBtn>,
+    mut ev_clicked: EventReader<mouse::Clicked>,
+    // mut ev_play_sound: EventWriter<emoji::PlaySound>,
+) {
+    for clicked in ev_clicked.read() {
+        if let Ok(_) = q_play_sound_btns.get(clicked.entity) {
+            // ev_play_sound.send();
+        }
+    }
 }
 
 fn create_tile(
